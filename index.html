@@ -32,10 +32,10 @@
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
-        // 3 PISTAS (distâncias horizontais)
+        // Pistas
         const lanes = [200, 400, 600];
 
-        // PERSONAGEM
+        // Jogador
         const player = {
             x: lanes[1],
             y: 300,
@@ -45,12 +45,54 @@
             color: "yellow"
         };
 
+        // Obstáculos
+        let obstacles = [];
+        let speed = 6;
+
+        function createObstacle() {
+            const lane = Math.floor(Math.random() * 3);
+            obstacles.push({
+                x: lanes[lane],
+                y: -50,
+                width: 50,
+                height: 50,
+                color: "red"
+            });
+        }
+
         function drawPlayer() {
             ctx.fillStyle = player.color;
             ctx.fillRect(player.x - player.width / 2, player.y - player.height / 2, player.width, player.height);
         }
 
-        // CONTROLE ESQUERDA / DIREITA
+        function drawObstacles() {
+            obstacles.forEach(o => {
+                ctx.fillStyle = o.color;
+                ctx.fillRect(o.x - o.width / 2, o.y - o.height / 2, o.width, o.height);
+            });
+        }
+
+        function updateObstacles() {
+            obstacles.forEach(o => o.y += speed);
+
+            // Remover obstáculos fora da tela
+            obstacles = obstacles.filter(o => o.y < 450);
+        }
+
+        function checkCollision() {
+            for (let o of obstacles) {
+                const dx = Math.abs(o.x - player.x);
+                const dy = Math.abs(o.y - player.y);
+
+                if (dx < 40 && dy < 40) {
+                    alert("💥 Você bateu! Reiniciando...");
+                    obstacles = [];
+                    speed = 6;
+                }
+            }
+        }
+
+        // Movimento
         document.addEventListener("keydown", (e) => {
             if (e.key === "ArrowLeft" && player.laneIndex > 0) {
                 player.laneIndex--;
@@ -62,10 +104,18 @@
             }
         });
 
-        // LOOP PRINCIPAL
+        // Criar obstáculos automaticamente
+        setInterval(createObstacle, 900);
+
+        // Loop
         function gameLoop() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+
             drawPlayer();
+            drawObstacles();
+            updateObstacles();
+            checkCollision();
+
             requestAnimationFrame(gameLoop);
         }
 
